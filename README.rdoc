@@ -55,6 +55,14 @@ You can spec the Person class in complete isolation.
     end
   end
 
+Finally, an individual observer may be temporarily bypassed:
+
+  # save a model without triggering callbacks
+  old_person = Person.find person.id
+  PersonObserver.skip do
+    old_person.save!
+  end
+
 == Credits
 
 * Brandon Keepers
