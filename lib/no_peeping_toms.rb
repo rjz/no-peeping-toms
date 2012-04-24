@@ -7,11 +7,12 @@ module NoPeepingToms
 
   included do
     # Define class-level accessors
-    cattr_accessor :default_observers_enabled, :observers_enabled
+    cattr_accessor :default_observers_enabled, :observers_enabled, :observers_blacklist
 
     # By default, enable all observers
     enable_observers
     self.observers_enabled = []
+    self.observers_blacklist = []
 
     alias_method_chain :define_callbacks, :enabled_check
   end
@@ -37,11 +38,18 @@ module NoPeepingToms
       self.observers_enabled = []
     end
 
+    def skip
+      self.observers_blacklist.push self.instance
+      yield
+    ensure
+      self.observers_blacklist.delete self.instance
+    end
+
     # Determines whether an observer is enabled.  Either:
     # - All observers are enabled OR
     # - The observer is in the whitelist
     def observer_enabled?(observer)
-      default_observers_enabled or self.observers_enabled.include?(observer)
+      (default_observers_enabled or self.observers_enabled.include?(observer)) and !self.observers_blacklist.include?(observer)
     end
   end
 
